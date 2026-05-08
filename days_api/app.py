@@ -14,7 +14,7 @@ app_history = []
 app = Flask(__name__)
 
 @app.route('/between', methods=['POST'])
-def between_dates():
+def between():
     add_to_history(request)
     body = request.json
 
@@ -52,7 +52,7 @@ def history():
             number = request.args.get('number', type=int)
             if number is None or number < 1 or number > 20:
                 return {'error': 'Number must be an integer between 1 and 20.'}, 400
-        return jsonify(app_history[-number:])
+        return jsonify(app_history[-number:][::-1])
     if request.method == 'DELETE':
         app_history.clear()
         return jsonify({'status': 'History cleared'}), 200
@@ -65,9 +65,10 @@ def clear_history():
 
 
 @app.route('/weekday' , methods =['POST'])
-def getting_weekdays():
+def weekday():
     add_to_history(request)
     body = request.json
+    
 
     if not body or 'date' not in body :
         return {'error': 'Missing required data.'}, 400
@@ -81,6 +82,22 @@ def getting_weekdays():
     return jsonify({"weekday": weekday})
 
 
+@app.route('/current_age', methods=['GET'])
+def age():
+    add_to_history(request)
+    body = request.get_json(silent=True)
+    
+    if not body or 'date' not in body:
+        return {'error': 'Date parameter is required.'}, 400
+    
+    bday = body['date']  
+    try:
+        birthday = convert_to_datetime(bday)
+    except Exception:
+        return {'error': 'Value for date parameter is invalid.'}, 400
+
+    age = get_current_age(birthday)
+    return jsonify({"current_age": age})
 
 @app.get("/")
 def index():
