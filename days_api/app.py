@@ -42,10 +42,11 @@ def add_to_history(current_request):
 @app.route('/history', methods=['GET'])
 def get_history():
     """Returns the last n requests."""
-    number = request.args.get('number', 5, type=int)
+    number = request.args.get('number', type=int)
 
-    if number < 1 or number > 20:
-        return {"error": "number must be between 1 and 20"}, 400
+    if number is None or number < 1 or number > 20:
+        return {'error': 'Number must be an integer between 1 and 20.'}, 400
+    print(number)
 
     return jsonify(app_history[-number:])
 
@@ -68,7 +69,7 @@ def getting_weekdays():
 
 
     weekday = get_day_of_week_on(date)
-    return jsonify({"day": weekday})
+    return jsonify({"weekday": weekday})
 
 
 
