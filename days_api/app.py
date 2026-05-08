@@ -39,16 +39,25 @@ def add_to_history(current_request):
         "route": current_request.endpoint
     })
 
-@app.route('/history', methods=['GET'])
-def get_history():
+@app.route('/history', methods=['GET', 'DELETE'])
+def history():
     """Returns the last n requests."""
-    number = request.args.get('number', type=int)
+    if request.method == 'GET':
+        add_to_history(request)
+        raw = request.args.get('number')
 
-    if number is None or number < 1 or number > 20:
-        return {'error': 'Number must be an integer between 1 and 20.'}, 400
-    print(number)
-
-    return jsonify(app_history[-number:])
+        if raw is None:
+            number = 5  
+        else:
+            number = request.args.get('number', type=int)
+            if number is None or number < 1 or number > 20:
+                return {'error': 'Number must be an integer between 1 and 20.'}, 400
+        return jsonify(app_history[-number:])
+    if request.method == 'DELETE':
+        app_history.clear()
+        return jsonify({'status': 'History cleared'}), 200
+    
+    
 
 def clear_history():
     """Clears the app history."""
