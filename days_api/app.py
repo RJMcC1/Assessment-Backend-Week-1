@@ -13,6 +13,23 @@ app_history = []
 
 app = Flask(__name__)
 
+@app.route('/between', methods=['POST'])
+def between_dates():
+    add_to_history(request)
+    body = request.json
+
+    if not body or 'first' not in body or 'last' not in body:
+        return {'error': 'Missing required data.'}, 400
+
+    try:
+        first = convert_to_datetime(body['first'])
+        last = convert_to_datetime(body['last'])
+    except Exception:
+        return {'error': 'Unable to convert value to datetime.'}, 400
+
+    days_between = get_days_between(first, last)
+    return jsonify({"days": days_between})
+
 
 def add_to_history(current_request):
     """Adds a route to the app history."""
@@ -22,9 +39,37 @@ def add_to_history(current_request):
         "route": current_request.endpoint
     })
 
+@app.route('/history', methods=['GET'])
+def get_history():
+    """Returns the last n requests."""
+    number = request.args.get('number', 5, type=int)
+
+    if number < 1 or number > 20:
+        return {"error": "number must be between 1 and 20"}, 400
+
+    return jsonify(app_history[-number:])
+
 def clear_history():
     """Clears the app history."""
     app_history.clear()
+
+
+@app.route('/weekday' , methods =['POST'])
+def getting_weekdays():
+    add_to_history(request)
+    body = request.json
+
+    if not body or 'date' not in body :
+        return {'error': 'Missing required data.'}, 400
+    try:
+        date = convert_to_datetime(body['date'])
+    except Exception:
+        return {'error': 'Unable to convert value to datetime.'}, 400
+
+
+    weekday = get_day_of_week_on(date)
+    return jsonify({"day": weekday})
+
 
 
 @app.get("/")
